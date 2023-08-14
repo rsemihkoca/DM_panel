@@ -13,7 +13,6 @@ from lib.constants import Constants, Messages
 class Api:
     def __init__(self):
         pass
-
     def CheckUserLoginPassword(self):
 
         headers = Headers.CheckUserLoginPassword()
@@ -35,7 +34,6 @@ class Api:
         except requests.exceptions.RequestException as e:
             print('An error occurred:', e)
             return None
-
     def CheckForLogin(self):
 
         headers = Headers.CheckForLogin()
@@ -55,7 +53,6 @@ class Api:
         except requests.exceptions.RequestException as e:
             print('An error occurred:', e)
             return None
-
     def Login(self):
 
         headers = Headers.Login()
@@ -77,6 +74,7 @@ class Api:
             print('An error occurred:', e)
             return None
 
+    @profile
     def GetClientTurnoverReportWithActiveBonus(self, authcode, startimelocal, endtimelocal):
         headers = Headers.GetClientTurnoverReportWithActiveBonus(authcode)
 

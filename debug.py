@@ -1,7 +1,6 @@
 from lib.api import Api
 from pprint import pprint
 
-
 # Aynı anda sadece bir tane kullanıcı giriş yapabilir. Bu hesap şu anda kullanımda.
 
 if __name__ == '__main__':
