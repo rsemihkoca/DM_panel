@@ -36,6 +36,6 @@ if __name__ == '__main__':
         print("==================header====================\n")
         pprint(dict(response_data.headers))
         print("==================response===================\n")
-        pprint(response_data.json())
+        pprint(response_data.json()["Data"])
         print("==================authcode===================\n")
         pprint(authcode)
