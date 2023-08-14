@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     print("GetClientTurnoverReportWithActiveBonus")
 
-    response_data = api.GetClientTurnoverReportWithActiveBonus(authcode, '15-08-23', '15-08-23')
+    response_data = api.GetClientTurnoverReportWithActiveBonus(authcode, '14-08-23', '14-08-23')
 
     if response_data:
         print("==================header====================\n")
