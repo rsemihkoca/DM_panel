@@ -1,5 +1,6 @@
 class Constants:
     CheckUserLoginPassword = 'CheckUserLoginPassword'
+    CheckForLogin = 'CheckForLogin'
 
     Success = 'success'
     Fail = 'fail'

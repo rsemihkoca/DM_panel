@@ -27,3 +27,28 @@ class Headers:
             'user-agent': user_agent,
             'x-requested-with': 'XMLHttpRequest',
         }
+
+    @staticmethod
+    def CheckForLogin():
+        ua = UserAgent()
+        user_agent = ua.random
+
+        return {
+            'authority': domain,
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'tr',
+            'access-control-allow-credentials': 'true',
+            'authentication': '',
+            # 'cookie': '',
+            'dnt': '1',  # Do Not Track
+            'origin': subdomain,
+            'referer': subdomain + '/',
+            'sec-ch-ua': '"Not/A)Brand";v="99", "Microsoft Edge";v="115", "Chromium";v="115"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': user_agent,
+            'x-requested-with': 'XMLHttpRequest',
+        }
