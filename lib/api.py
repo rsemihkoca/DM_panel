@@ -74,13 +74,12 @@ class Api:
             print('An error occurred:', e)
             return None
 
-    @profile
-    def GetClientTurnoverReportWithActiveBonus(self, authcode, startimelocal, endtimelocal):
+    def GetClientTurnoverReportWithActiveBonus(self, authcode, starttimelocal, endtimelocal):
         headers = Headers.GetClientTurnoverReportWithActiveBonus(authcode)
 
         url = f'{Config.base_url}/{Constants.Report}/{Constants.GetClientTurnoverReportWithActiveBonus}'
         data = {
-            Constants.StartTimeLocal: startimelocal,
+            Constants.StartTimeLocal: starttimelocal,
             Constants.EndTimeLocal: endtimelocal,
             Constants.ClientId: None,
             Constants.IsTest: None,
