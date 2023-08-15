@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float
-from sqlalchemy.dialects.postgresql import UUID
 from database.db import Base
 
 
