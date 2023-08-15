@@ -1,3 +1,4 @@
+import datetime
 class Constants:
     Account = 'Account'
     CheckUserLoginPassword = 'CheckUserLoginPassword'
@@ -26,3 +27,7 @@ class Constants:
 
 class Messages:
     AlertMessage = 'Operation has completed successfully'
+
+class Dates:
+    project_start_date = '02-07-21'
+    today = datetime.datetime.today().strftime('%d-%m-%y')
