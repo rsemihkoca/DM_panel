@@ -1,9 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float
 from database.db import Base
 
-
 class Player(Base):
-    __tablename__ = 'players'
+    __tablename__ = 'Players'
 
     Date = Column(DateTime, primary_key=True)
     ClientId = Column(Integer, primary_key=True)
@@ -59,3 +58,6 @@ class Player(Base):
     PeriodEndBalance = Column(Float)
     CasinoPeriodStartBalance = Column(Float)
     CasinoPeriodEndBalance = Column(Float)
+
+class TodayPlayer(Player):
+    __tablename__ = 'TodayPlayers'
