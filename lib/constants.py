@@ -34,5 +34,7 @@ class Messages:
 
 class Dates:
     project_start_date = '02-07-21'
+    # project_start_date = '01-11-22'
+    # 2022, 11, 1),
     today = datetime.datetime.today().strftime('%d-%m-%y')
     yesterday = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%d-%m-%y')

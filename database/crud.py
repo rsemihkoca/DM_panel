@@ -7,9 +7,9 @@ class Crud:
     def checkDates(self, table: DeclarativeMeta):
         with SessionLocal() as session:
             try:
-                date = session.query(table).filter(PlayersExceptToday.Date.is_(None)).all()
+                date = session.query(table).count()
 
-                if date is None or (isinstance(date, list) and len(date) == 0):
+                if date is 0:
                     return True
                 return False
 

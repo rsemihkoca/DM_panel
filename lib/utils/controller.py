@@ -50,7 +50,7 @@ class Controller:
         self.logger.info("authcode: " + authcode)
         # self.logger.info("OK")
         return authcode
-    @profiler
+    # @profiler
     def getPlayerReport(self, start_date=Dates.today, end_date=Dates.today) -> dict:
         self.__CheckUserLoginPassword__()
         self.__CheckForLogin__()
@@ -61,6 +61,8 @@ class Controller:
         return response_data.json()
     @profiler
     def fill_db(self):
+        # 250784 record 17-08-23 e kadar 15 dk
+        # TODO: Pass no data dates
         self.logger.info("Filling DB with data.")
 
         try:
@@ -82,8 +84,6 @@ class Controller:
 
                 self.logger.info("Inserting data for date: {}".format(date_str))
                 self.insertBulkPlayers(PlayersExceptToday, data_of_date_added)
-
-                self.logger.info("Filling DB with data. OK")
         except Exception as e:
             raise e
 
