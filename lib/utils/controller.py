@@ -63,6 +63,7 @@ class Controller:
     def fill_db(self):
         # 250784 record 17-08-23 e kadar 15 dk
         # TODO: Pass no data dates
+        # Copy from ile yapmayı dene db copy from'un bırakılan yerşden devam ettir.
         self.logger.info("Filling DB with data.")
 
         try:
