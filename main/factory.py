@@ -1,13 +1,13 @@
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from routers import db_router
-
+from lib.utils.controller import Controller
 origins = ["*"]
 
 def create_app():
     app = FastAPI()
-    # app.logger
-    # app.controller
+    # app.loggeri
+    app.controller = Controller()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
