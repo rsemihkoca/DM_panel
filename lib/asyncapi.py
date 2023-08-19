@@ -118,3 +118,13 @@ class AsyncAPI:
                 yield None
 
             current_date += timedelta(days=1)
+
+
+    async def PlayersETL(self, start_date, end_date):
+        async for i, date in self.getPlayerReportDayByDay(start_date, end_date):
+            data = i["Data"]
+            if data is None or (isinstance(data, list) and len(data) == 0):
+                continue
+
+            formatted_data = [{'Date': date, 'Year': date.year, 'Month': date.month, 'Day': date.day, **entry} for entry in data]
+            yield formatted_data
