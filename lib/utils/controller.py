@@ -9,6 +9,9 @@ from database import models
 from logging.handlers import RotatingFileHandler
 from lib.pipeline import Pipeline
 from lib.reports.dashboard import DasboardCalculations
+
+import polars as pl
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -46,11 +49,12 @@ class Controller:
 
     def start(self):
 
+        data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
+
         threads = [
             (self.insertBulkPlayers, models.Players),
             (DasboardCalculations.GeneralSituation, ),
-            (DasboardCalculations.GeneralSituation, 'arg1'),
-            (func2, 'arg2')]
+            (DasboardCalculations.GeneralSituation, 'arg1')]
         processor = Pipeline(self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday), threads)
         processor.start()
 

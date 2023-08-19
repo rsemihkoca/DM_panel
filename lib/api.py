@@ -70,7 +70,7 @@ class Api:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
             assert response.status_code == 200
-            return response
+            return response.headers[Constants.Authentication]
         except requests.exceptions.RequestException as e:
             print('An error occurred:', e)
             return None
