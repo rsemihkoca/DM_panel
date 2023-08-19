@@ -48,8 +48,8 @@ class Controller:
 
         threads = [
             (self.insertBulkPlayers, models.Players),
-            (DasboardCalculations.General, 'arg1'),
-            (DasboardCalculations.General, 'arg1'),
+            (DasboardCalculations.GeneralSituation, ),
+            (DasboardCalculations.GeneralSituation, 'arg1'),
             (func2, 'arg2')]
         processor = Pipeline(self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday), threads)
         processor.start()
