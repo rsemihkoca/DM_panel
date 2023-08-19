@@ -1,4 +1,4 @@
-import logging
+import logging, asyncio
 from lib.api import Api
 from lib.asyncapi import AsyncAPI
 from lib.constants import Dates, Dates, TableFields
@@ -8,7 +8,7 @@ from database.crud import Crud
 from database import models
 from logging.handlers import RotatingFileHandler
 from lib.pipeline import Pipeline
-from lib.reports.dashboard import DasboardCalculations
+from lib.reports.dashboard import DasbhoardCalculations as DC
 
 import polars as pl
 
@@ -49,27 +49,29 @@ class Controller:
 
     def start(self):
 
-        data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
+        # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
 
         threads = [
             (self.insertBulkPlayers, models.Players),
-            (DasboardCalculations.GeneralSituation, ),
-            (DasboardCalculations.GeneralSituation, 'arg1')]
+            (DC.GeneralSituation),
+            (DC.Affiliates),
+            (DC.NaturalMembers)
+        ]
         processor = Pipeline(self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday), threads)
-        processor.start()
 
-        data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
+        asyncio.run(processor.start())
+
 
         # self.download_data()
-
-        self.crud.copyFromCSV(models.Players, "./database/resources/data.csv")
-
-        # Check if it is first run
-        if validators.checkFirstRun():
-            self.logger.info("First run detected")
-            self.logger.info("OK")
-        else:
-            self.logger.info("Not first run. Skipping DB filling. Cron will run as usual.")
+        #
+        # self.crud.copyFromCSV(models.Players, "./database/resources/data.csv")
+        #
+        # # Check if it is first run
+        # if validators.checkFirstRun():
+        #     self.logger.info("First run detected")
+        #     self.logger.info("OK")
+        # else:
+        #     self.logger.info("Not first run. Skipping DB filling. Cron will run as usual.")
 
 
     def insertBulkPlayers(self, table, data: list):

@@ -2,14 +2,43 @@ from database import models
 from database.crud import Crud
 import polars as pl
 from lib.constants import CommissionCoefficients as CC
+from typing import List, Dict
 
-
-class DasboardCalculations:
+class DasbhoardCalculations:
 
     @staticmethod
     def GeneralSituation(data):
-
         df = pl.DataFrame(data)
+
+        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
+        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
+
+
+    @staticmethod
+    def Affiliates(data):
+        df = pl.DataFrame(data)
+
+        df = DasbhoardCalculations.FilterAffiliates(df)
+        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
+        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
+    @staticmethod
+    def NaturalMembers(data):
+        df = pl.DataFrame(data)
+
+        df = DasbhoardCalculations.FilterNaturalMembers(df)
+        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
+        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
+
+    @staticmethod
+    def FilterAffiliates(df):
+        df.filter((df['BTag'].str.len() == 6) | (df['BTag'].str.len() == 7) & (df['BTag'] != "888692"))
+        return df
+    @staticmethod
+    def FilterNaturalMembers(df):
+        df.filter((df['BTag'].str.len() != 6) & (df['BTag'].str.len() != 7) | (df['BTag'] == "888692"))
+        return df
+    @staticmethod
+    def CalculateValues(df) -> List[dict]:
 
         # Deposits
         CountDeposit = df.filter(df["DepositCount"] > 0).shape[0]
@@ -42,7 +71,7 @@ class DasboardCalculations:
         ProviderCommission = SportsBookInvoice + CasinoInvoice
         TotalInvoice = PaymentCommission + AffiliateCommission + ProviderCommission
 
-        return {
+        return [{
             'CountDeposit': CountDeposit,
             'SumDepositAmount': SumDepositAmount,
             'WithdrawalCount': WithdrawalCount,
@@ -60,20 +89,8 @@ class DasboardCalculations:
             'AffiliateCommission': AffiliateCommission,
             'ProviderCommission': ProviderCommission,
             'TotalInvoice': TotalInvoice
-        }
+        }]
+    @staticmethod
+    def InsertData(table, data):
+        Crud.insertData(table, data)
 
-    @staticmethod
-    def Affiliates(data):
-        pass
-    @staticmethod
-    def NaturalMembers(data):
-        pass
-    @staticmethod
-    def FilterData():
-        pass
-    @staticmethod
-    def CalculateValues():
-        pass
-    @staticmethod
-    def InsertData():
-        pass
