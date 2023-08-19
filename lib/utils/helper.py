@@ -1,6 +1,6 @@
+import gzip, csv
 import time
 import datetime
-
 
 def profiler(func):
     """
@@ -17,12 +17,24 @@ def profiler(func):
 
 def create_date_list(start_date, end_date):
     return [(start_date + datetime.timedelta(days=i)) for i in range((end_date - start_date).days + 1)]
-    # date_list = []
-    # current_date = datetime.datetime.strptime(start_date, '%d-%m-%y')
-    # end_date = datetime.datetime.strptime(end_date, '%d-%m-%y')
-    # while current_date <= end_date:
-    #     date_list.append(current_date.strftime('%d-%m-%y'))
-    #     current_date += datetime.timedelta(days=1)
-    #
-    # return date_list
 
+
+def write_to_csv(directory_name, fieldnames, generator):
+    rows = []
+    try:
+        with gzip.open(directory_name, 'wt', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quotechar='"', quoting=csv.QUOTE_ALL)
+            writer.writeheader()
+            for row in generator:
+                rows.extend(row)
+                if len(rows) >= 10_000:
+                    writer.writerows(rows)
+                    rows = []
+                    csvfile.flush()  # flush the buffer to ensure data is written to disk
+            if len(rows) > 0:
+                writer.writerows(rows)
+                csvfile.flush()
+        return True
+    except Exception as e:
+        del rows
+        raise e

@@ -161,5 +161,10 @@ cython_debug/
 /.idea/workspace.xml
 
 # Postgres
-
 postgres-data/
+
+# Data
+.csv
+.csv.gz
+/database/resources/data.csv.gz
+/database/resources/data.csv

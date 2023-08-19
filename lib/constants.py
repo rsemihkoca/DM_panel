@@ -1,4 +1,7 @@
 import datetime
+from database import models
+
+
 class Constants:
     Account = 'Account'
     CheckUserLoginPassword = 'CheckUserLoginPassword'
@@ -13,7 +16,6 @@ class Constants:
     language = 'language'
     device = 'device'
 
-
     StartTimeLocal = 'StartTimeLocal'
     EndTimeLocal = 'EndTimeLocal'
     ClientId = 'ClientId'
@@ -25,16 +27,22 @@ class Constants:
     AlertType = 'AlertType'
     AlertMessage = 'AlertMessage'
 
+
 class Tables:
     PlayersExceptToday = 'PlayersExceptToday'
     PlayersToday = 'PlayersToday'
 
+
+class TableFields:
+    PlayersExceptToday = models.PlayersExceptToday.get_column_names()
+    PlayersToday = models.PlayersToday.get_column_names()
+
+
 class Messages:
     AlertMessage = 'Operation has completed successfully'
 
+
 class Dates:
-    project_start_date = '02-07-21'
-    # project_start_date = '01-11-22'
-    # 2022, 11, 1),
-    today = datetime.datetime.today().strftime('%d-%m-%y')
-    yesterday = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%d-%m-%y')
+    project_start_date: str = '02-07-21'
+    today: str = datetime.datetime.today().strftime('%d-%m-%y')
+    yesterday: str = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%d-%m-%y')
