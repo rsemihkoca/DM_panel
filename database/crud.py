@@ -1,6 +1,6 @@
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from database.db import SessionLocal, engine
-from database.models import PlayersExceptToday, PlayersToday
+from database.models import Players
 from lib.constants import TableFields
 import postgres_copy
 

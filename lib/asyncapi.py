@@ -101,8 +101,8 @@ class AsyncAPI:
                 return None
 
     async def getPlayerReportDayByDay(self, start_date: str, end_date: str) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
-        current_date = datetime.strptime(start_date, '%d-%m-%Y')
-        end_date_obj = datetime.strptime(end_date, '%d-%m-%Y')
+        current_date = datetime.strptime(start_date, '%d-%m-%y')
+        end_date_obj = datetime.strptime(end_date, '%d-%m-%y')
 
         while current_date <= end_date_obj:
             await self.CheckUserLoginPassword()

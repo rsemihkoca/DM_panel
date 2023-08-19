@@ -3,8 +3,8 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from database.db import Base
 
-class PlayersExceptToday(Base):
-    __tablename__ = 'PlayersExceptToday'
+class Players(Base):
+    __tablename__ = 'Players'
 
     Date = Column(Date, primary_key=True)
     Year = Column(Integer, primary_key=True)

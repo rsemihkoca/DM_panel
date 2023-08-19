@@ -8,7 +8,8 @@ sys.path.append('../lib')
 from lib.config import Config
 from lib.headers import Headers
 from lib.constants import Constants, Messages
-
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, Generator
 
 class Api:
     def __init__(self):
@@ -93,3 +94,38 @@ class Api:
         except requests.exceptions.RequestException as e:
             print('An error occurred:', e)
             return None
+
+    def getPlayerReport(self, start_date, end_date):
+        self.CheckUserLoginPassword()
+        self.CheckForLogin()
+        auth_code = self.Login()
+        response_data = self.GetClientTurnoverReportWithActiveBonus(auth_code, start_date, end_date)
+        if response_data is None:
+            return None
+        return response_data.json()
+
+    def getPlayerReportDayByDay(self, start_date: str, end_date: str) -> Generator[Optional[Dict[str, Any]], None, None]:
+        current_date = datetime.strptime(start_date, '%d-%m-%y')
+        end_date_obj = datetime.strptime(end_date, '%d-%m-%y')
+
+        while current_date <= end_date_obj:
+            self.CheckUserLoginPassword()
+            self.CheckForLogin()
+            auth_code = self.Login()
+            date = current_date.strftime('%d-%m-%y')
+
+            response_data = self.GetClientTurnoverReportWithActiveBonus(auth_code, date, date)
+            if data := response_data if response_data else None:
+                yield data.json(), current_date.date()
+            else:
+                yield None
+            current_date += timedelta(days=1)
+
+    def PlayersETL(self, start_date, end_date):
+        for i, date in self.getPlayerReportDayByDay(start_date, end_date):
+            data = i["Data"]
+            if data is None or (isinstance(data, list) and len(data) == 0):
+                continue
+
+            formatted_data = [{'Date': date, 'Year': date.year, 'Month': date.month, 'Day': date.day, **entry} for entry in data]
+            yield formatted_data

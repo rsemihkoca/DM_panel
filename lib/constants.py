@@ -29,13 +29,12 @@ class Constants:
 
 
 class Tables:
-    PlayersExceptToday = 'PlayersExceptToday'
-    PlayersToday = 'PlayersToday'
+    Players = 'Players'
 
 
 class TableFields:
-    PlayersExceptToday = models.PlayersExceptToday.get_column_names()
-    PlayersToday = models.PlayersToday.get_column_names()
+    Players = models.Players.get_column_names()
+    # PlayersToday = models.PlayersToday.get_column_names()
 
 
 class Messages:

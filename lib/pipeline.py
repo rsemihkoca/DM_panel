@@ -1,22 +1,28 @@
 import asyncio
 import threading
-import queue
+
+
 class Pipeline:
 
-    # Change generator daily to 5 minutes for today
-    def __init__(self, async_generator):
+    def __init__(self, async_generator, func_tuples):
         self.async_generator = async_generator
-        self.data_queue = queue.Queue()
-        self.processed_event = threading.Event()
+        self.data_queue = asyncio.Queue()  # Set queue size to max 6
         self.stop_signal = False
+        self.func_tuples = func_tuples
+        self.counter = 0
 
     async def producer(self):
         async for data in self.async_generator:
-            self.data_queue.put(data)
+            print("Producer: Got data from async generator", self.data_queue.qsize())
+            print("Data", len(data))
+            print("date", data[0]["Date"])
+            self.counter += len(data)
+            print("counter", self.counter)
+            await self.data_queue.put(data)
         self.stop_signal = True
-    async def start(self):
 
-        asyncio.run(self.run())
+    async def start(self):
+        await self.run()
 
     async def run(self):
         # Start fetching data asynchronously on the main thread
@@ -27,31 +33,21 @@ class Pipeline:
         await consumer_task
 
     async def consumer(self):
-
-
         while not self.stop_signal or not self.data_queue.empty():
             try:
                 # Get data from the queue with a timeout to avoid infinite blocking
-                data = await self.data_queue.get(timeout=1)
-                self.processed_event.clear()  # Reset the event for the new data
+                data = await asyncio.wait_for(self.data_queue.get(), timeout=1)
 
                 # Start the threads for the current data
-                thread1 = threading.Thread(target=self.func1, args=(data,))
-                thread2 = threading.Thread(target=self.func2, args=(data,))
-                thread1.start()
-                thread2.start()
+                threads = [threading.Thread(target=func, args=(data, args)) for func, args in self.func_tuples]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
 
-                # Wait for both threads to finish processing the current data
-                thread1.join()
-                thread2.join()
-
+            except asyncio.TimeoutError:
+                continue
             except Exception as e:
                 raise e
 
         print("All data processed!")
-
-    # Usage
-
-
-processor = Pipeline()
-asyncio.run(processor.run())
