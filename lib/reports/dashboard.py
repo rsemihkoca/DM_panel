@@ -4,65 +4,74 @@ import polars as pl
 from lib.constants import CommissionCoefficients as CC
 from typing import List, Dict
 
-class DasbhoardCalculations:
+CC = CC()
+CC.CFK = 0.1
+CC.SFK = 0.1
+CC.FOK = 0.1
+crud = Crud()
+class DashboardCalculations:
 
     @staticmethod
-    def GeneralSituation(data):
+    def GeneralSituation(data, *args):
         df = pl.DataFrame(data)
+        date = data[0]["Date"]
 
-        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
-        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
-
+        CalculatedValues = DashboardCalculations.CalculateValues(df)
+        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+        DashboardCalculations.InsertData(data=DateAddedData, table=models.GeneralSituationDashboard)
 
     @staticmethod
-    def Affiliates(data):
+    def Affiliates(data, *args):
         df = pl.DataFrame(data)
+        date = data[0]["Date"]
 
-        df = DasbhoardCalculations.FilterAffiliates(df)
-        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
-        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
+        condition = ((df['BTag'].str.lengths() == 6) | (df['BTag'].str.lengths() == 7) & (df['BTag'] != "888692"))
+        df = DashboardCalculations.FilterData(df, condition)
+        CalculatedValues = DashboardCalculations.CalculateValues(df)
+        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+        DashboardCalculations.InsertData(data=DateAddedData, table=models.AffiliateDashboard)
+
     @staticmethod
-    def NaturalMembers(data):
+    def NaturalMembers(data, *args):
         df = pl.DataFrame(data)
+        date = data[0]["Date"]
 
-        df = DasbhoardCalculations.FilterNaturalMembers(df)
-        CalculatedValues = DasbhoardCalculations.CalculateValues(df)
-        DasbhoardCalculations.InsertData(models.GeneralSituationDashboard, CalculatedValues)
+        condition = ((df['BTag'].str.lengths() != 6) & (df['BTag'].str.lengths() != 7) | (df['BTag'] == "888692"))
+        df = DashboardCalculations.FilterData(df, condition)
+        CalculatedValues = DashboardCalculations.CalculateValues(df)
+        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+        DashboardCalculations.InsertData(data=DateAddedData, table=models.NaturalMembersDashboard)
 
     @staticmethod
-    def FilterAffiliates(df):
-        df.filter((df['BTag'].str.len() == 6) | (df['BTag'].str.len() == 7) & (df['BTag'] != "888692"))
-        return df
-    @staticmethod
-    def FilterNaturalMembers(df):
-        df.filter((df['BTag'].str.len() != 6) & (df['BTag'].str.len() != 7) | (df['BTag'] == "888692"))
-        return df
+    def FilterData(df, condition):
+        filtered_df = df.filter(condition)
+        return filtered_df
+
     @staticmethod
     def CalculateValues(df) -> List[dict]:
-
         # Deposits
         CountDeposit = df.filter(df["DepositCount"] > 0).shape[0]
-        SumDepositAmount = df["DepositAmount"].sum().get()
+        SumDepositAmount = df["DepositAmount"].sum()
 
         # Withdrawals
         WithdrawalCount = df.filter(df["WithdrawalCount"] > 0).shape[0]
-        WithdrawalAmount = df["WithdrawalAmount"].sum().get()
+        WithdrawalAmount = df["WithdrawalAmount"].sum()
 
         # Net Deposit
         NetDepositAmount = SumDepositAmount - WithdrawalAmount
 
         # Total Balance
         CountTotalBalance = df.filter(df["TotalBalance"] > 2).shape[0]
-        SumTotalBalance = df.filter(df["TotalBalance"] > 2)["TotalBalance"].sum().get()
+        SumTotalBalance = df.filter(df["TotalBalance"] > 2)["TotalBalance"].sum()
 
         # Sportsbook
-        SumSportTotalBetAmount = df["SportTotalBetAmount"].sum().get()
-        SumSportRealMoneyWonAmount = df["SportRealMoneyWonAmount"].sum().get()
+        SumSportTotalBetAmount = df["SportTotalBetAmount"].sum()
+        SumSportRealMoneyWonAmount = df["SportRealMoneyWonAmount"].sum()
         SportsBookInvoice = (SumSportTotalBetAmount - SumSportRealMoneyWonAmount) * CC.SFK
 
         # Casino
-        SumCasinoTotalBetAmount = df["CasinoTotalBetAmount"].sum().get()
-        SumCasinoRealMoneyWonAmount = df["CasinoRealMoneyWonAmount"].sum().get()
+        SumCasinoTotalBetAmount = df["CasinoTotalBetAmount"].sum()
+        SumCasinoRealMoneyWonAmount = df["CasinoRealMoneyWonAmount"].sum()
         CasinoInvoice = (SumCasinoTotalBetAmount - SumCasinoRealMoneyWonAmount) * CC.CFK
 
         # Total Commissions
@@ -90,7 +99,15 @@ class DasbhoardCalculations:
             'ProviderCommission': ProviderCommission,
             'TotalInvoice': TotalInvoice
         }]
-    @staticmethod
-    def InsertData(table, data):
-        Crud.insertData(table, data)
 
+    @staticmethod
+    def AddDate(data, date):
+        data[0]["Date"] = date
+        data[0]["Year"] = date.year
+        data[0]["Month"] = date.month
+        data[0]["Day"] = date.day
+        return data
+
+    @staticmethod
+    def InsertData(data, table):
+        crud.insertData(table=table, data=data)

@@ -52,10 +52,10 @@ class Dates:
 
 class CommissionCoefficients:
 
-    def __init__(self, SFK: float, CFK: float, FOK: float):
-        self.__SFK = SFK
-        self.__CFK = CFK
-        self.__FOK = FOK
+    def __init__(self):
+        self.__SFK = None
+        self.__CFK = None
+        self.__FOK = None
 
     @property
     def SFK(self):

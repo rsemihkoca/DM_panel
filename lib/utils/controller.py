@@ -8,7 +8,7 @@ from database.crud import Crud
 from database import models
 from logging.handlers import RotatingFileHandler
 from lib.pipeline import Pipeline
-from lib.reports.dashboard import DasbhoardCalculations as DC
+from lib.reports.dashboard import DashboardCalculations as DC
 
 import polars as pl
 
@@ -51,13 +51,14 @@ class Controller:
 
         # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
 
-        threads = [
+        threads = (
             (self.insertBulkPlayers, models.Players),
-            (DC.GeneralSituation),
-            (DC.Affiliates),
-            (DC.NaturalMembers)
-        ]
-        processor = Pipeline(self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday), threads)
+            (DC.GeneralSituation, None),
+            (DC.Affiliates, None),
+            (DC.NaturalMembers, None)
+        )
+        etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
+        processor = Pipeline(etl, threads)
 
         asyncio.run(processor.start())
 
@@ -74,5 +75,5 @@ class Controller:
         #     self.logger.info("Not first run. Skipping DB filling. Cron will run as usual.")
 
 
-    def insertBulkPlayers(self, table, data: list):
+    def insertBulkPlayers(self, data, table: list):
         self.crud.insertData(table, data)

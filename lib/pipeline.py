@@ -39,7 +39,7 @@ class Pipeline:
                 data = await asyncio.wait_for(self.data_queue.get(), timeout=1)
 
                 # Start the threads for the current data
-                threads = [threading.Thread(target=func, args=(data, args)) for func, args in self.func_tuples]
+                threads = [threading.Thread(target=func, args=(data, *args)) for func, *args in self.func_tuples]
                 for thread in threads:
                     thread.start()
                 for thread in threads:
