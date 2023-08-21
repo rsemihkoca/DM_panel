@@ -1,4 +1,5 @@
 import logging, asyncio
+from datetime import datetime
 from lib.api import Api
 from lib.asyncapi import AsyncAPI
 from lib.constants import Dates, Dates, TableFields
@@ -7,10 +8,8 @@ from lib.utils import validators
 from database.crud import Crud
 from database import models
 from logging.handlers import RotatingFileHandler
-from lib.pipeline import Pipeline
+from lib.utils.pipeline import Pipeline
 from lib.reports.dashboard import DashboardCalculations as DC
-
-import polars as pl
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,11 +45,18 @@ class Controller:
 
 
 
-
+    @profiler
     def start(self):
 
         # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
+        """
+        bugünün verisiyse onları temizlesin oyle devam etsin
+        :return:
+        """
+        if self.crud.deleteTables():
+            self.logger.info("Tables deleted successfully")
 
+        print("STARTED AT:", datetime.now())
         threads = (
             (self.insertBulkPlayers, models.Players),
             (DC.GeneralSituation, None),

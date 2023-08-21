@@ -2,6 +2,7 @@ from database import models
 from database.crud import Crud
 import polars as pl
 from lib.constants import CommissionCoefficients as CC
+from lib.schemes.data import Schemas as SC
 from typing import List, Dict
 
 CC = CC()
@@ -13,101 +14,131 @@ class DashboardCalculations:
 
     @staticmethod
     def GeneralSituation(data, *args):
-        df = pl.DataFrame(data)
-        date = data[0]["Date"]
+        try:
+            df = pl.DataFrame(data, schema=SC.dashboard)
+            date = data[0]["Date"]
 
-        CalculatedValues = DashboardCalculations.CalculateValues(df)
-        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
-        DashboardCalculations.InsertData(data=DateAddedData, table=models.GeneralSituationDashboard)
+            CalculatedValues = DashboardCalculations.CalculateValues(df)
+            DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            DashboardCalculations.InsertData(data=DateAddedData, table=models.GeneralSituationDashboard)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def Affiliates(data, *args):
-        df = pl.DataFrame(data)
-        date = data[0]["Date"]
+        """
+        2021-10-01 : invalid series dtype: expected `Utf8`, got `bool` : schema = SC.dashboard
+        :param data:
+        :param args:
+        :return:
+        """
+        try:
 
-        condition = ((df['BTag'].str.lengths() == 6) | (df['BTag'].str.lengths() == 7) & (df['BTag'] != "888692"))
-        df = DashboardCalculations.FilterData(df, condition)
-        CalculatedValues = DashboardCalculations.CalculateValues(df)
-        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
-        DashboardCalculations.InsertData(data=DateAddedData, table=models.AffiliateDashboard)
+            df = pl.DataFrame(data, schema=SC.dashboard)
+            date = data[0]["Date"]
+
+            condition = ((df['BTag'].str.lengths() == 6) | (df['BTag'].str.lengths() == 7) & (df['BTag'] != "888692"))
+            df = DashboardCalculations.FilterData(df, condition)
+            CalculatedValues = DashboardCalculations.CalculateValues(df)
+            DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            DashboardCalculations.InsertData(data=DateAddedData, table=models.AffiliateDashboard)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def NaturalMembers(data, *args):
-        df = pl.DataFrame(data)
-        date = data[0]["Date"]
+        try:
+            df = pl.DataFrame(data, schema=SC.dashboard)
+            date = data[0]["Date"]
 
-        condition = ((df['BTag'].str.lengths() != 6) & (df['BTag'].str.lengths() != 7) | (df['BTag'] == "888692"))
-        df = DashboardCalculations.FilterData(df, condition)
-        CalculatedValues = DashboardCalculations.CalculateValues(df)
-        DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
-        DashboardCalculations.InsertData(data=DateAddedData, table=models.NaturalMembersDashboard)
+            condition = ((df['BTag'].str.lengths() != 6) & (df['BTag'].str.lengths() != 7) | (df['BTag'] == "888692"))
+            df = DashboardCalculations.FilterData(df, condition)
+            CalculatedValues = DashboardCalculations.CalculateValues(df)
+            DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            DashboardCalculations.InsertData(data=DateAddedData, table=models.NaturalMembersDashboard)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def FilterData(df, condition):
-        filtered_df = df.filter(condition)
-        return filtered_df
+        try:
+            filtered_df = df.filter(condition)
+        except Exception as e:
+            print(e)
+        else:
+            return filtered_df
 
     @staticmethod
     def CalculateValues(df) -> List[dict]:
-        # Deposits
-        CountDeposit = df.filter(df["DepositCount"] > 0).shape[0]
-        SumDepositAmount = df["DepositAmount"].sum()
+        try:
+            # Deposits
+            CountDeposit = df.filter(df["DepositCount"] > 0).shape[0]
+            SumDepositAmount = df["DepositAmount"].sum()
 
-        # Withdrawals
-        WithdrawalCount = df.filter(df["WithdrawalCount"] > 0).shape[0]
-        WithdrawalAmount = df["WithdrawalAmount"].sum()
+            # Withdrawals
+            WithdrawalCount = df.filter(df["WithdrawalCount"] > 0).shape[0]
+            WithdrawalAmount = df["WithdrawalAmount"].sum()
 
-        # Net Deposit
-        NetDepositAmount = SumDepositAmount - WithdrawalAmount
+            # Net Deposit
+            NetDepositAmount = SumDepositAmount - WithdrawalAmount
 
-        # Total Balance
-        CountTotalBalance = df.filter(df["TotalBalance"] > 2).shape[0]
-        SumTotalBalance = df.filter(df["TotalBalance"] > 2)["TotalBalance"].sum()
+            # Total Balance
+            CountTotalBalance = df.filter(df["TotalBalance"] > 2).shape[0]
+            SumTotalBalance = df.filter(df["TotalBalance"] > 2)["TotalBalance"].sum()
 
-        # Sportsbook
-        SumSportTotalBetAmount = df["SportTotalBetAmount"].sum()
-        SumSportRealMoneyWonAmount = df["SportRealMoneyWonAmount"].sum()
-        SportsBookInvoice = (SumSportTotalBetAmount - SumSportRealMoneyWonAmount) * CC.SFK
+            # Sportsbook
+            SumSportTotalBetAmount = df["SportTotalBetAmount"].sum()
+            SumSportRealMoneyWonAmount = df["SportRealMoneyWonAmount"].sum()
+            SportsBookInvoice = (SumSportTotalBetAmount - SumSportRealMoneyWonAmount) * CC.SFK
 
-        # Casino
-        SumCasinoTotalBetAmount = df["CasinoTotalBetAmount"].sum()
-        SumCasinoRealMoneyWonAmount = df["CasinoRealMoneyWonAmount"].sum()
-        CasinoInvoice = (SumCasinoTotalBetAmount - SumCasinoRealMoneyWonAmount) * CC.CFK
+            # Casino
+            SumCasinoTotalBetAmount = df["CasinoTotalBetAmount"].sum()
+            SumCasinoRealMoneyWonAmount = df["CasinoRealMoneyWonAmount"].sum()
+            CasinoInvoice = (SumCasinoTotalBetAmount - SumCasinoRealMoneyWonAmount) * CC.CFK
 
-        # Total Commissions
-        PaymentCommission = SumDepositAmount * CC.FOK
-        AffiliateCommission = 0
-        ProviderCommission = SportsBookInvoice + CasinoInvoice
-        TotalInvoice = PaymentCommission + AffiliateCommission + ProviderCommission
-
-        return [{
-            'CountDeposit': CountDeposit,
-            'SumDepositAmount': SumDepositAmount,
-            'WithdrawalCount': WithdrawalCount,
-            'WithdrawalAmount': WithdrawalAmount,
-            'NetDepositAmount': NetDepositAmount,
-            'CountTotalBalance': CountTotalBalance,
-            'SumTotalBalance': SumTotalBalance,
-            'SumSportTotalBetAmount': SumSportTotalBetAmount,
-            'SumSportRealMoneyWonAmount': SumSportRealMoneyWonAmount,
-            'SportsBookInvoice': SportsBookInvoice,
-            'SumCasinoTotalBetAmount': SumCasinoTotalBetAmount,
-            'SumCasinoRealMoneyWonAmount': SumCasinoRealMoneyWonAmount,
-            'CasinoInvoice': CasinoInvoice,
-            'PaymentCommission': PaymentCommission,
-            'AffiliateCommission': AffiliateCommission,
-            'ProviderCommission': ProviderCommission,
-            'TotalInvoice': TotalInvoice
-        }]
+            # Total Commissions
+            PaymentCommission = SumDepositAmount * CC.FOK
+            AffiliateCommission = 0
+            ProviderCommission = SportsBookInvoice + CasinoInvoice
+            TotalInvoice = PaymentCommission + AffiliateCommission + ProviderCommission
+        except Exception as e:
+            print(e)
+        else:
+            return [{
+                'CountDeposit': CountDeposit,
+                'SumDepositAmount': SumDepositAmount,
+                'WithdrawalCount': WithdrawalCount,
+                'WithdrawalAmount': WithdrawalAmount,
+                'NetDepositAmount': NetDepositAmount,
+                'CountTotalBalance': CountTotalBalance,
+                'SumTotalBalance': SumTotalBalance,
+                'SumSportTotalBetAmount': SumSportTotalBetAmount,
+                'SumSportRealMoneyWonAmount': SumSportRealMoneyWonAmount,
+                'SportsBookInvoice': SportsBookInvoice,
+                'SumCasinoTotalBetAmount': SumCasinoTotalBetAmount,
+                'SumCasinoRealMoneyWonAmount': SumCasinoRealMoneyWonAmount,
+                'CasinoInvoice': CasinoInvoice,
+                'PaymentCommission': PaymentCommission,
+                'AffiliateCommission': AffiliateCommission,
+                'ProviderCommission': ProviderCommission,
+                'TotalInvoice': TotalInvoice
+            }]
 
     @staticmethod
     def AddDate(data, date):
-        data[0]["Date"] = date
-        data[0]["Year"] = date.year
-        data[0]["Month"] = date.month
-        data[0]["Day"] = date.day
-        return data
+        try:
+            data[0]["Date"] = date
+            data[0]["Year"] = date.year
+            data[0]["Month"] = date.month
+            data[0]["Day"] = date.day
+        except Exception as e:
+            print(e)
+        else:
+            return data
 
     @staticmethod
     def InsertData(data, table):
-        crud.insertData(table=table, data=data)
+        try:
+            crud.insertData(table=table, data=data)
+        except Exception as e:
+            print(e)
