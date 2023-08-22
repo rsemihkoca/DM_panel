@@ -2,6 +2,7 @@ import asyncio
 import threading
 from lib.config import Config
 from datetime import datetime
+from lib.constants import Dates
 class Pipeline:
 
     def __init__(self, async_generator, func_tuples, cron: bool = False):
@@ -11,11 +12,16 @@ class Pipeline:
         self.stop_signal = asyncio.Event()
         self.func_tuples = func_tuples
         self.counter = 0
+        self.flag = 0
 
     async def producer(self):
         async for data in self.async_generator:
             print("Producer: Got data from async generator", self.data_queue.qsize())
-            print("Data", len(data))
+            print("data", len(data))
+            if datetime.strftime(data[0]["Date"], '%d-%m-%y') == Dates.today and self.flag != len(data):
+                print(f"Data has been updated: from {self.flag} to {len(data)}")
+                self.flag = len(data)
+
             print("date", data[0]["Date"])
             self.counter += len(data)
             print("counter", self.counter)

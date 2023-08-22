@@ -71,7 +71,8 @@ class Controller:
             (DC.NaturalMembers, None)
         )
 
-        etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
+        # etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
+        etl = self.async_api.PlayersETL(Dates.last_7_days, Dates.yesterday)
         processor = Pipeline(etl, threads, cron=False)
         asyncio.run(processor.start())
         self.logger.info("ETL process completed successfully")
