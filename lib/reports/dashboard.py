@@ -1,9 +1,10 @@
 from database import models
 from database.crud import Crud
 import polars as pl
-from lib.constants import CommissionCoefficients as CC
+from lib.constants import Dates, CommissionCoefficients as CC
 from lib.schemes.data import Schemas as SC
 from typing import List, Dict
+from datetime import datetime
 
 CC = CC()
 CC.CFK = 0.1
@@ -32,6 +33,8 @@ class DashboardCalculations:
 
             CalculatedValues = DashboardCalculations.CalculateValues(df)
             DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            if datetime.strftime(date, '%d-%m-%y') == Dates.today:
+                DashboardCalculations.DeleteData(table=models.GeneralSituationDashboard, date=date)
             DashboardCalculations.InsertData(data=DateAddedData, table=models.GeneralSituationDashboard)
         except Exception as e:
             print(e)
@@ -53,6 +56,8 @@ class DashboardCalculations:
             df = DashboardCalculations.FilterData(df, condition)
             CalculatedValues = DashboardCalculations.CalculateValues(df)
             DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            if datetime.strftime(date, '%d-%m-%y') == Dates.today:
+                DashboardCalculations.DeleteData(table=models.AffiliateDashboard, date=date)
             DashboardCalculations.InsertData(data=DateAddedData, table=models.AffiliateDashboard)
         except Exception as e:
             print(e)
@@ -68,6 +73,8 @@ class DashboardCalculations:
             df = DashboardCalculations.FilterData(df, condition)
             CalculatedValues = DashboardCalculations.CalculateValues(df)
             DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
+            if datetime.strftime(date, '%d-%m-%y') == Dates.today:
+                DashboardCalculations.DeleteData(table=models.NaturalMembersDashboard, date=date)
             DashboardCalculations.InsertData(data=DateAddedData, table=models.NaturalMembersDashboard)
         except Exception as e:
             print(e)
@@ -155,3 +162,10 @@ class DashboardCalculations:
             crud.insertData(table=table, data=data)
         except Exception as e:
             print(e)
+
+    @staticmethod
+    def DeleteData(table, date):
+        try:
+            crud.deleteDate(table=table, date=date)
+        except Exception as e:
+            raise e

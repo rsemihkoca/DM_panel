@@ -1,46 +1,50 @@
 import asyncio
 import threading
-from lib.config import Config
 from datetime import datetime
 from lib.constants import Dates
+from lib.utils.helper import has_day_changed
 class Pipeline:
 
-    def __init__(self, async_generator, func_tuples, cron: bool = False):
-        self.cron = cron
+    def __init__(self, async_generator, func_tuples):
         self.async_generator = async_generator
         self.data_queue = asyncio.Queue(maxsize=6)  # Set queue size to max 6
         self.stop_signal = asyncio.Event()
         self.func_tuples = func_tuples
         self.counter = 0
-        self.flag = 0
+        self.change_in_data = 0
+        self.flag = False
 
     async def producer(self):
         async for data in self.async_generator:
+            date = data[0]["Date"]
+
+            print("==========================")
             print("Producer: Got data from async generator", self.data_queue.qsize())
             print("data", len(data))
-            if datetime.strftime(data[0]["Date"], '%d-%m-%y') == Dates.today and self.flag != len(data):
-                print(f"Data has been updated: from {self.flag} to {len(data)}")
-                self.flag = len(data)
+            print("date", date)
 
-            print("date", data[0]["Date"])
-            self.counter += len(data)
-            print("counter", self.counter)
+            if datetime.strftime(date, '%d-%m-%y') == Dates.today and self.change_in_data != len(data):
+                print(f"Data has been updated: from {self.change_in_data} to {len(data)}")
+                self.change_in_data = len(data)
+
+                if not self.flag:
+                    self.flag = True
+                    self.counter += len(data)
+                    print("counter", self.counter)
+                else:
+                    if has_day_changed():
+                        self.flag = False
+                    else:
+                        pass
+            else:
+                self.counter += len(data)
+                print("counter", self.counter)
+
             await self.data_queue.put(data)  # This will block if the queue is full
         self.stop_signal.set()
 
     async def start(self):
-        if self.cron != False:
-            self.async_generator = self.run_cron(self.async_generator, Config.refresh_interval)
-            await self.run()
-        else:
-            await self.run()
-    async def run_cron(self, generator, interval_seconds: int):
-        while True:
-            print(f"Starting the cron job... {datetime.now()}")
-            async for data in generator:
-                yield data
-            print(f"Job done! Waiting for {interval_seconds} seconds...")
-            await asyncio.sleep(interval_seconds)
+        await self.run()
 
     async def run(self):
         # Start fetching data asynchronously on the main thread

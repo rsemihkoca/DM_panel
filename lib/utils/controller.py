@@ -2,8 +2,9 @@ import logging, asyncio
 from datetime import datetime
 from lib.api import Api
 from lib.asyncapi import AsyncAPI
-from lib.constants import Dates, Dates, TableFields
-from lib.utils.helper import profiler, create_date_list, write_to_csv
+from lib.constants import Dates, TableFields
+from lib.config import Config
+from lib.utils.helper import profiler, write_to_csv
 from lib.utils import validators
 from database.crud import Crud
 from database import models
@@ -50,13 +51,11 @@ class Controller:
 
         # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
         """
-        bugünün verisiyse onları temizlesin oyle devam etsin
+        YENI GUNE GECILDIGINDE DUNE AIT VERI DOGRU OLMALI
 
         VERI KALITE KONTROLU yapmaya devam et
-        this one waits consumer to finish NOT WANTED
 
         Önce flow: bunun için go ile mikroservis yazar ortaya broker koyarız
-        sonra today
         ardından fastapi istekleri
         :return:
         """
@@ -72,17 +71,20 @@ class Controller:
         )
 
         # etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
-        etl = self.async_api.PlayersETL(Dates.last_7_days, Dates.yesterday)
-        processor = Pipeline(etl, threads, cron=False)
+        etl = self.async_api.PlayersETL(Dates.last_7_days, Dates.yesterday, cron=False)
+        processor = Pipeline(etl, threads)
         asyncio.run(processor.start())
         self.logger.info("ETL process completed successfully")
         print("FINISHED AT:", datetime.now())
 
-
-        today_etl = self.async_api.PlayersETL(Dates.today, Dates.today)
-        processor = Pipeline(today_etl, threads, cron=True)
+        generator = self.async_api.PlayersETL(Dates.today, Dates.today, cron=True)
+        async_cron_job = self.async_api.run_cron(generator, Config.refresh_interval)
+        processor = Pipeline(async_cron_job, threads)
         asyncio.run(processor.start())
 
     def insertBulkPlayers(self, data, table: list):
+        date = data[0]["Date"]
+        if datetime.strftime(date, '%d-%m-%y') == Dates.today:
+            self.crud.deleteDate(table, date)
         self.crud.insertData(table, data)
 

@@ -100,7 +100,7 @@ class AsyncAPI:
                 print('An error occurred:', e)
                 return None
 
-    async def getPlayerReportDayByDay(self, start_date: str, end_date: str) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
+    async def getPlayerReportDayByDay(self, start_date: str, end_date: str, cron: bool) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
         current_date = datetime.strptime(start_date, '%d-%m-%y')
         end_date_obj = datetime.strptime(end_date, '%d-%m-%y')
 
@@ -117,14 +117,22 @@ class AsyncAPI:
             else:
                 yield None
 
-            current_date += timedelta(days=1)
+            if not cron:
+                current_date += timedelta(days=1)
 
 
-    async def PlayersETL(self, start_date, end_date):
-        async for i, date in self.getPlayerReportDayByDay(start_date, end_date):
+    async def PlayersETL(self, start_date, end_date, cron):
+        async for i, date in self.getPlayerReportDayByDay(start_date, end_date, cron):
             data = i["Data"]
             if data is None or (isinstance(data, list) and len(data) == 0):
                 continue
 
             formatted_data = [{'Date': date, 'Year': date.year, 'Month': date.month, 'Day': date.day, **entry} for entry in data]
             yield formatted_data
+    async def run_cron(self, generator, interval_seconds: int):
+        while True:
+            print(f"Starting the cron job... {datetime.now()}")
+            async for data in generator:
+                print(f"Job done! Waiting for {interval_seconds} seconds...")
+                await asyncio.sleep(interval_seconds)
+                yield data

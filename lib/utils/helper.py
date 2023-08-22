@@ -2,6 +2,7 @@ import gzip, csv
 import time
 import datetime
 
+current_day = datetime.datetime.now().date()
 def profiler(func):
     """
     A decorator that prints the time a function takes
@@ -38,3 +39,12 @@ def write_to_csv(directory_name, fieldnames, generator):
     except Exception as e:
         del rows
         raise e
+
+def has_day_changed():
+    global current_day
+    today = datetime.datetime.now().date()
+    if today != current_day:
+        current_day = today
+        print("Day has changed.")
+        return True
+    return False

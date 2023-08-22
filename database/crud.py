@@ -17,6 +17,16 @@ class Crud:
 
             except Exception as e:
                 raise e
+
+    def deleteDate(self, table: type(DeclarativeMeta), date: str):
+        with SessionLocal() as session:
+            try:
+                session.query(table).filter(table.Date == date).delete()
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                raise e
+
     def insertData(self, table: type(DeclarativeMeta), data: list):
         with SessionLocal() as session:
             try:
