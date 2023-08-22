@@ -10,7 +10,19 @@ CC.CFK = 0.1
 CC.SFK = 0.1
 CC.FOK = 0.1
 crud = Crud()
+
 class DashboardCalculations:
+
+    condition = (
+        (pl.col('BTag').is_not_null()) &
+        (pl.col('BTag') != "") &
+        (
+            (pl.col('BTag').str.lengths() == 6) |
+            ((pl.col('BTag').str.lengths() == 7) & (pl.col('BTag') != "888692"))
+        )
+    )
+    # ((df['BTag'].str.lengths() == 6) | ((df['BTag'].str.lengths() == 7) & (df['BTag'] != "888692")))
+    # pl.col('Name').str.contains('William$').is_not()
 
     @staticmethod
     def GeneralSituation(data, *args):
@@ -37,7 +49,7 @@ class DashboardCalculations:
             df = pl.DataFrame(data, schema=SC.dashboard)
             date = data[0]["Date"]
 
-            condition = ((df['BTag'].str.lengths() == 6) | (df['BTag'].str.lengths() == 7) & (df['BTag'] != "888692"))
+            condition = DashboardCalculations.condition
             df = DashboardCalculations.FilterData(df, condition)
             CalculatedValues = DashboardCalculations.CalculateValues(df)
             DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
@@ -51,7 +63,8 @@ class DashboardCalculations:
             df = pl.DataFrame(data, schema=SC.dashboard)
             date = data[0]["Date"]
 
-            condition = ((df['BTag'].str.lengths() != 6) & (df['BTag'].str.lengths() != 7) | (df['BTag'] == "888692"))
+            condition = ~DashboardCalculations.condition
+            # ((df['BTag'].str.lengths() != 6) & (df['BTag'].str.lengths() != 7) | (df['BTag'] == "888692"))
             df = DashboardCalculations.FilterData(df, condition)
             CalculatedValues = DashboardCalculations.CalculateValues(df)
             DateAddedData = DashboardCalculations.AddDate(CalculatedValues, date)
