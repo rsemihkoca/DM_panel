@@ -33,21 +33,25 @@ class Pipeline:
         await consumer_task
 
     async def consumer(self):
+
+        while self.data_queue.qsize() < 15 and not self.stop_signal:
+            await asyncio.sleep(0.1)  # Sleep for a short time before rechecking
+
         while not self.stop_signal or not self.data_queue.empty():
-            try:
-                # Get data from the queue with a timeout to avoid infinite blocking
-                data = await asyncio.wait_for(self.data_queue.get(), timeout=1)
+                try:
+                    # Get data from the queue with a timeout to avoid infinite blocking
+                    data = await asyncio.wait_for(self.data_queue.get(), timeout=1)
 
-                # Start the threads for the current data
-                threads = [threading.Thread(target=func, args=(data, *args)) for func, *args in self.func_tuples]
-                for thread in threads:
-                    thread.start()
-                for thread in threads:
-                    thread.join()
+                    # Start the threads for the current data
+                    threads = [threading.Thread(target=func, args=(data, *args)) for func, *args in self.func_tuples]
+                    for thread in threads:
+                        thread.start()
+                    for thread in threads:
+                        thread.join()
 
-            except asyncio.TimeoutError:
-                continue
-            except Exception as e:
-                raise e
+                except asyncio.TimeoutError:
+                    continue
+                except Exception as e:
+                    raise e
 
         print("All data processed!")

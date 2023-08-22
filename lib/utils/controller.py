@@ -63,8 +63,8 @@ class Controller:
             (DC.Affiliates, None),
             (DC.NaturalMembers, None)
         )
-        # etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
-        etl = self.async_api.PlayersETL(Dates.yesterday, Dates.yesterday)
+        etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
+        # etl = self.async_api.PlayersETL(Dates.yesterday, Dates.yesterday)
         processor = Pipeline(etl, threads)
 
         asyncio.run(processor.start())
