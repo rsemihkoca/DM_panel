@@ -34,9 +34,6 @@ class Pipeline:
 
     async def consumer(self):
 
-        while self.data_queue.qsize() < 15 and not self.stop_signal:
-            await asyncio.sleep(0.1)  # Sleep for a short time before rechecking
-
         while not self.stop_signal or not self.data_queue.empty():
                 try:
                     # Get data from the queue with a timeout to avoid infinite blocking

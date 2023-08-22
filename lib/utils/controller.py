@@ -54,6 +54,10 @@ class Controller:
 
         VERI KALITE KONTROLU yapmaya devam et
         this one waits consumer to finish NOT WANTED
+
+        Önce flow
+        sonra today
+        ardından fastapi istekleri
         :return:
         """
         if self.crud.deleteTables():
