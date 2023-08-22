@@ -57,7 +57,7 @@ class Controller:
 
         Önce flow: bunun için go ile mikroservis yazar ortaya broker koyarız
         ardından fastapi istekleri
-        :return:
+
         """
         if self.crud.deleteTables():
             self.logger.info("Tables deleted successfully")
