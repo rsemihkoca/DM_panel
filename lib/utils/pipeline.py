@@ -27,19 +27,6 @@ class Pipeline:
                 print(f"Data has been updated: from {self.change_in_data} to {len(data)}")
                 self.change_in_data = len(data)
 
-                if not self.flag:
-                    self.flag = True
-                    self.counter += len(data)
-                    print("counter", self.counter)
-                else:
-                    if has_day_changed():
-                        self.flag = False
-                    else:
-                        pass
-            else:
-                self.counter += len(data)
-                print("counter", self.counter)
-
             await self.data_queue.put(data)  # This will block if the queue is full
         self.stop_signal.set()
 

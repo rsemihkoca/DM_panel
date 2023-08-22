@@ -51,7 +51,7 @@ class Controller:
 
         # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
         """
-        YENI GUNE GECILDIGINDE DUNE AIT VERI DOGRU OLMALI
+        YENI GUNE GECILDIGINDE DUNE AIT VERI DOGRU OLMALI !!!!
 
         VERI KALITE KONTROLU yapmaya devam et
 
