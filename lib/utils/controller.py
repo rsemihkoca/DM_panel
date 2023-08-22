@@ -55,7 +55,7 @@ class Controller:
         VERI KALITE KONTROLU yapmaya devam et
         this one waits consumer to finish NOT WANTED
 
-        Önce flow
+        Önce flow: bunun için go ile mikroservis yazar ortaya broker koyarız
         sonra today
         ardından fastapi istekleri
         :return:
@@ -70,24 +70,18 @@ class Controller:
             (DC.Affiliates, None),
             (DC.NaturalMembers, None)
         )
+
         etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday)
-        # etl = self.async_api.PlayersETL(Dates.yesterday, Dates.yesterday)
-        processor = Pipeline(etl, threads)
-
+        processor = Pipeline(etl, threads, cron=False)
         asyncio.run(processor.start())
+        self.logger.info("ETL process completed successfully")
+        print("FINISHED AT:", datetime.now())
 
 
-        # self.download_data()
-        #
-        # self.crud.copyFromCSV(models.Players, "./database/resources/data.csv")
-        #
-        # # Check if it is first run
-        # if validators.checkFirstRun():
-        #     self.logger.info("First run detected")
-        #     self.logger.info("OK")
-        # else:
-        #     self.logger.info("Not first run. Skipping DB filling. Cron will run as usual.")
-
+        today_etl = self.async_api.PlayersETL(Dates.today, Dates.today)
+        processor = Pipeline(today_etl, threads, cron=True)
+        asyncio.run(processor.start())
 
     def insertBulkPlayers(self, data, table: list):
         self.crud.insertData(table, data)
+

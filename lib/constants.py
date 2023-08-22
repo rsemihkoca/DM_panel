@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 from database import models
 
 
@@ -46,9 +46,17 @@ class Messages:
 
 
 class Dates:
+
+    today: str = datetime.today().strftime('%d-%m-%y')
+    yesterday: str = (datetime.today() - timedelta(days=1)).strftime('%d-%m-%y')
+    last_7_days: str = (datetime.today() - timedelta(days=7)).strftime('%d-%m-%y')
+    last_30_days: str = (datetime.today() - timedelta(days=30)).strftime('%d-%m-%y')
+    month_to_date: str = datetime.today().strftime('01-%m-%y')
+    year_to_date: str = datetime.today().strftime('01-01-%y')
+    last_365_days: str = (datetime.today() - timedelta(days=365)).strftime('%d-%m-%y')
+
     project_start_date: str = '02-07-21'
-    today: str = datetime.datetime.today().strftime('%d-%m-%y')
-    yesterday: str = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%d-%m-%y')
+
 
 class CommissionCoefficients:
 
