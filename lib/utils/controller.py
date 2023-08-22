@@ -51,6 +51,9 @@ class Controller:
         # data = self.api.getPlayerReport(Dates.yesterday, Dates.yesterday)
         """
         bugünün verisiyse onları temizlesin oyle devam etsin
+
+        VERI KALITE KONTROLU yapmaya devam et
+        this one waits consumer to finish NOT WANTED
         :return:
         """
         if self.crud.deleteTables():
