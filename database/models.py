@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, Float
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.sql.expression import text
+from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 from database.db import Base
 
@@ -213,3 +215,14 @@ class NaturalMembersDashboard(Base):
         # Use the declared attributes to get columns and filter out anything that's not a column
         return [key for key, column in cls.__dict__.items() if isinstance(column, InstrumentedAttribute)]
 
+
+
+class Users(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, nullable=False, index=True)
+    full_name = Column(String, nullable=False)
+    username = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
+    disabled = Column(Boolean, nullable=False, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=text("now()"), nullable=False)
