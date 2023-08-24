@@ -46,7 +46,7 @@ class Pipeline:
         while not self.stop_signal.is_set() or not self.data_queue.empty():
             try:
                 # Get data from the queue with a timeout to avoid infinite blocking
-                data = await asyncio.wait_for(self.data_queue.get(), timeout=1)
+                data = await asyncio.wait_for(self.data_queue.get(), timeout=5)
 
                 # Start the threads for the current data
                 threads = [threading.Thread(target=func, args=(data, *args)) for func, *args in self.func_tuples]

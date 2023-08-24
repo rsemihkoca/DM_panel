@@ -1,5 +1,6 @@
 import sys
 import requests
+from functools import wraps
 import httpx
 import asyncio
 sys.path.append('.')
@@ -16,6 +17,45 @@ class AsyncAPI:
 
     def __init__(self):
         pass
+
+
+
+    def retry_on_readtimeout(retries=3):
+        def decorator(func):
+            @wraps(func)
+            async def wrapper(*args, **kwargs):
+                for i in range(retries):
+                    try:
+                        return await func(*args, **kwargs)
+                    except httpx.ReadTimeout:
+                        if i < retries - 1:  # i starts from 0
+                            print(f"ReadTimeout encountered. Retrying... {i + 1}/{retries}")
+                            continue
+                        else:
+                            print("Max retries reached. Aborting.")
+                            raise
+                    except Exception as e:  # Handle other exceptions
+                        print('An error occurred:', e)
+                        return None
+
+            return wrapper
+
+        return decorator
+
+    @retry_on_readtimeout()
+    async def send_request(self, method, url, headers, data=None, params=None):
+        async with httpx.AsyncClient(timeout=5) as client:
+            if method == "POST":
+                response = await client.post(url, headers=headers, json=data, params=params)
+            elif method == "GET":
+                response = await client.get(url, headers=headers, params=params)
+            # Add more methods as needed, e.g., PUT, DELETE, etc.
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            return response
+
+
+
     async def CheckUserLoginPassword(self):
 
         headers = Headers.CheckUserLoginPassword()
@@ -26,18 +66,8 @@ class AsyncAPI:
             Constants.language: 'en',
             Constants.device: None,
         }
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, headers=headers, json=data)
-                response.raise_for_status()
-                assert response.status_code == 200
-                assert response.json()[Constants.AlertType] == Constants.Success
-                assert response.json()[Constants.AlertMessage] == Messages.AlertMessage
-                return response
-            except httpx.RequestError as e:
-                print('An error occurred:', e)
-                return None
+        # post request
+        return await self.send_request("POST", url, headers, data)
 
     async def CheckForLogin(self):
 
@@ -46,18 +76,8 @@ class AsyncAPI:
         params = {
             Constants.username: Config.username
         }
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(url, headers=headers, params=params)
-                response.raise_for_status()
-                assert response.status_code == 200
-                assert response.json()[Constants.AlertType] == Constants.Success
-                assert response.json()[Constants.AlertMessage] == Messages.AlertMessage
-                return response
-            except httpx.RequestError as e:
-                print('An error occurred:', e)
-                return None
+        # get request
+        return await self.send_request("GET", url, headers, params)
 
     async def Login(self):
 
@@ -69,18 +89,8 @@ class AsyncAPI:
             Constants.language: 'en',
             Constants.device: None,
         }
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, headers=headers, json=data)
-                response.raise_for_status()
-                assert response.status_code == 200
-                return response
-            except httpx.RequestError as e:
-                print('An error occurred:', e)
-                raise e
-            except Exception as e:
-                raise e
+        # post request
+        return await self.send_request("POST", url, headers, data)
 
     async def GetClientTurnoverReportWithActiveBonus(self, authcode, starttimelocal, endtimelocal):
         headers = Headers.GetClientTurnoverReportWithActiveBonus(authcode)
@@ -91,16 +101,8 @@ class AsyncAPI:
             Constants.ClientId: None,
             Constants.IsTest: None,
         }
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, headers=headers, json=data)
-                response.raise_for_status()
-                assert response.status_code == 200
-                return response
-            except httpx.RequestError as e:
-                print('An error occurred:', e)
-                return None
+        # post request
+        return await self.send_request("POST", url, headers, data)
 
     async def getPlayerReportDayByDay(self, start_date: str, end_date: str, cron: bool) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
         current_date = datetime.strptime(start_date, '%d-%m-%y')
@@ -110,10 +112,18 @@ class AsyncAPI:
             await self.CheckUserLoginPassword()
             await self.CheckForLogin()
             response_data = await self.Login()
+            if response_data is None:
+                raise Exception('Login failed')
+
+
             auth_code = response_data.headers['authentication']
 
             date = current_date.strftime('%d-%m-%y')
             response_data = await self.GetClientTurnoverReportWithActiveBonus(auth_code, date, date)
+
+            if response_data is None:
+                raise Exception('GetClientTurnoverReportWithActiveBonus failed')
+
             if data := response_data.json() if response_data else None:
                 yield data, current_date.date()
             else:
