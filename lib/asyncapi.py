@@ -78,7 +78,9 @@ class AsyncAPI:
                 return response
             except httpx.RequestError as e:
                 print('An error occurred:', e)
-                return None
+                raise e
+            except Exception as e:
+                raise e
 
     async def GetClientTurnoverReportWithActiveBonus(self, authcode, starttimelocal, endtimelocal):
         headers = Headers.GetClientTurnoverReportWithActiveBonus(authcode)
