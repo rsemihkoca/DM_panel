@@ -218,7 +218,7 @@ class NaturalMembersDashboard(Base):
 
 
 class Users(Base):
-    __tablename__ = "users"
+    __tablename__ = "Users"
     id = Column(Integer, primary_key=True, nullable=False, index=True)
     full_name = Column(String, nullable=False)
     username = Column(String, nullable=False)

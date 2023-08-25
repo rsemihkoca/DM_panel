@@ -105,32 +105,42 @@ class AsyncAPI:
         return await self.send_request("POST", url, headers, data)
 
     async def getPlayerReportDayByDay(self, start_date: str, end_date: str, cron: bool) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
-        current_date = datetime.strptime(start_date, '%d-%m-%y')
-        end_date_obj = datetime.strptime(end_date, '%d-%m-%y')
+        global response_data
+        try:
 
-        while current_date <= end_date_obj:
-            await self.CheckUserLoginPassword()
-            await self.CheckForLogin()
-            response_data = await self.Login()
-            if response_data is None:
-                raise Exception('Login failed')
+            current_date = datetime.strptime(start_date, '%d-%m-%y')
+            end_date_obj = datetime.strptime(end_date, '%d-%m-%y')
+
+            while current_date <= end_date_obj:
+                await self.CheckUserLoginPassword()
+                await self.CheckForLogin()
+                response_data = await self.Login()
+                if response_data is None:
+                    raise Exception('Login failed')
 
 
-            auth_code = response_data.headers['authentication']
+                auth_code = response_data.headers['authentication']
 
-            date = current_date.strftime('%d-%m-%y')
-            response_data = await self.GetClientTurnoverReportWithActiveBonus(auth_code, date, date)
+                date = current_date.strftime('%d-%m-%y')
+                response_data = await self.GetClientTurnoverReportWithActiveBonus(auth_code, date, date)
 
-            if response_data is None:
-                raise Exception('GetClientTurnoverReportWithActiveBonus failed')
+                if response_data is None:
+                    raise Exception('GetClientTurnoverReportWithActiveBonus failed')
 
-            if data := response_data.json() if response_data else None:
-                yield data, current_date.date()
-            else:
-                yield None
+                if data := response_data.json() if response_data else None:
+                    yield data, current_date.date()
+                else:
+                    yield None
 
-            if not cron:
-                current_date += timedelta(days=1)
+                if not cron:
+                    current_date += timedelta(days=1)
+        except KeyError as e:
+            print("Response Headers:", response_data.headers)
+            print("Response Data:", response_data.text)
+
+            raise e
+        except Exception as e:
+            raise e
 
 
     async def PlayersETL(self, start_date, end_date, cron):
