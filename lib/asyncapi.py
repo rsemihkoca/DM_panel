@@ -18,15 +18,23 @@ class AsyncAPI:
     def __init__(self):
         pass
 
-
-
-    def retry_on_readtimeout(retries=3):
+    def retry_on_failure(retries=3):
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 for i in range(retries):
                     try:
-                        return await func(*args, **kwargs)
+                        response = await func(*args, **kwargs)
+                        if response.status_code != 200:
+                            # Print the status code and error message
+                            print(f"Received status code {response.status_code}: {response.text}")
+                            if i < retries - 1:  # i starts from 0
+                                print(f"Retrying... {i + 1}/{retries}")
+                                continue
+                            else:
+                                print("Max retries reached. Aborting.")
+                                return response  # or raise an exception
+                        return response
                     except httpx.ReadTimeout:
                         if i < retries - 1:  # i starts from 0
                             print(f"ReadTimeout encountered. Retrying... {i + 1}/{retries}")
@@ -42,7 +50,7 @@ class AsyncAPI:
 
         return decorator
 
-    @retry_on_readtimeout()
+    @retry_on_failure()
     async def send_request(self, method, url, headers, data=None, params=None):
         async with httpx.AsyncClient(timeout=5) as client:
             if method == "POST":
@@ -67,7 +75,7 @@ class AsyncAPI:
             Constants.device: None,
         }
         # post request
-        return await self.send_request("POST", url, headers, data)
+        return await self.send_request("POST", url, headers, data=data)
 
     async def CheckForLogin(self):
 
@@ -77,7 +85,7 @@ class AsyncAPI:
             Constants.username: Config.username
         }
         # get request
-        return await self.send_request("GET", url, headers, params)
+        return await self.send_request("GET", url, headers, params=params)
 
     async def Login(self):
 
@@ -90,7 +98,7 @@ class AsyncAPI:
             Constants.device: None,
         }
         # post request
-        return await self.send_request("POST", url, headers, data)
+        return await self.send_request("POST", url, headers, data=data)
 
     async def GetClientTurnoverReportWithActiveBonus(self, authcode, starttimelocal, endtimelocal):
         headers = Headers.GetClientTurnoverReportWithActiveBonus(authcode)
@@ -102,7 +110,7 @@ class AsyncAPI:
             Constants.IsTest: None,
         }
         # post request
-        return await self.send_request("POST", url, headers, data)
+        return await self.send_request("POST", url, headers, data=data)
 
     async def getPlayerReportDayByDay(self, start_date: str, end_date: str, cron: bool) -> AsyncGenerator[Optional[Dict[str, Any]], None]:
         global response_data
