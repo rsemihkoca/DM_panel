@@ -18,33 +18,38 @@ class AsyncAPI:
     def __init__(self):
         pass
 
-    def retry_on_failure(retries=3):
+    @staticmethod
+    def retry_on_failure():
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
-                for i in range(retries):
+                for i in range(3):
                     try:
                         response = await func(*args, **kwargs)
                         if response.status_code != 200:
                             # Print the status code and error message
                             print(f"Received status code {response.status_code}: {response.text}")
-                            if i < retries - 1:  # i starts from 0
-                                print(f"Retrying... {i + 1}/{retries}")
+                            if i < 3 - 1:  # i starts from 0
+                                print(f"Retrying... {i + 1}/{3}")
                                 continue
                             else:
                                 print("Max retries reached. Aborting.")
                                 return response  # or raise an exception
                         return response
-                    except httpx.ReadTimeout:
-                        if i < retries - 1:  # i starts from 0
-                            print(f"ReadTimeout encountered. Retrying... {i + 1}/{retries}")
+                    # except httpx.ReadTimeout:
+                    #     if i < 3 - 1:  # i starts from 0
+                    #         print(f"ReadTimeout encountered. Retrying... {i + 1}/{3}")
+                    #         continue
+                    #     else:
+                    #         print("Max retries reached. Aborting.")
+                    #         raise
+                    except Exception as e:  # Handle other exceptions
+                        if i < 3 - 1:  # i starts from 0
+                            print(f"{e} occured {i + 1}/{3}")
                             continue
                         else:
                             print("Max retries reached. Aborting.")
-                            raise
-                    except Exception as e:  # Handle other exceptions
-                        print('An error occurred:', e)
-                        return None
+                            return None
 
             return wrapper
 
@@ -52,7 +57,7 @@ class AsyncAPI:
 
     @retry_on_failure()
     async def send_request(self, method, url, headers, data=None, params=None):
-        async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(timeout=10) as client:
             if method == "POST":
                 response = await client.post(url, headers=headers, json=data, params=params)
             elif method == "GET":
@@ -124,7 +129,8 @@ class AsyncAPI:
                 await self.CheckForLogin()
                 response_data = await self.Login()
                 if response_data is None:
-                    raise Exception('Login failed')
+                    print("Login is None")
+                    # raise Exception('Login failed')
 
 
                 auth_code = response_data.headers['authentication']
@@ -133,12 +139,13 @@ class AsyncAPI:
                 response_data = await self.GetClientTurnoverReportWithActiveBonus(auth_code, date, date)
 
                 if response_data is None:
-                    raise Exception('GetClientTurnoverReportWithActiveBonus failed')
+                    print("GetClientTurnoverReportWithActiveBonus is None")
+                    # raise Exception('GetClientTurnoverReportWithActiveBonus failed')
 
                 if data := response_data.json() if response_data else None:
                     yield data, current_date.date()
                 else:
-                    yield None
+                    yield None, None
 
                 if not cron:
                     current_date += timedelta(days=1)
@@ -153,7 +160,8 @@ class AsyncAPI:
 
     async def PlayersETL(self, start_date, end_date, cron):
         async for i, date in self.getPlayerReportDayByDay(start_date, end_date, cron):
-            data = i["Data"]
+            data = i.get("Data", None) if i else None
+
             if data is None or (isinstance(data, list) and len(data) == 0):
                 continue
 

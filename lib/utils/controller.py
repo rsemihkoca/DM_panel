@@ -59,8 +59,8 @@ class Controller:
         ardından fastapi istekleri
 
         """
-        if self.crud.deleteTables():
-            self.logger.info("Tables deleted successfully")
+        # if self.crud.deleteTables():
+        #     self.logger.info("Tables deleted successfully")
 
         print("STARTED AT:", datetime.now())
         threads = (
@@ -70,12 +70,13 @@ class Controller:
             (DC.NaturalMembers, None)
         )
 
-        etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday, cron=False)
+        # etl = self.async_api.PlayersETL(Dates.project_start_date, Dates.yesterday, cron=False)
+
         # etl = self.async_api.PlayersETL(Dates.last_7_days, Dates.yesterday, cron=False)
-        processor = Pipeline(etl, threads)
-        asyncio.run(processor.start())
-        self.logger.info("ETL process completed successfully")
-        print("FINISHED AT:", datetime.now())
+        # processor = Pipeline(etl, threads)
+        # asyncio.run(processor.start())
+        # self.logger.info("ETL process completed successfully")
+        # print("FINISHED AT:", datetime.now())
 
         generator = self.async_api.PlayersETL(Dates.today, Dates.today, cron=True)
         async_cron_job = self.async_api.run_cron(generator, Config.refresh_interval)
