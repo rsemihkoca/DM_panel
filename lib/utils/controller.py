@@ -83,6 +83,18 @@ class Controller:
         processor = Pipeline(async_cron_job, threads)
         asyncio.run(processor.start())
 
+        # Affiliate kısmı hazır olduktan sonra dashboard panelini finalize edersin. AffiliateCommision eksik
+
+        # en başta load from csv yapısı çalışır sonra günlük pipeline'a geçilir.
+        # aylık periyotlar halinde csvlerin yedekleri alınır. bir ay dolduktan sonra o csv yedeklenir.
+        # ya da database versiyonlama gibi bir şey yapılır her gun sonunda db yedeklenir.
+
+
+        # pipeline günlük olsun
+        # pipeline'dan çıkınca csv son gün güncelle
+        # hangi gün günlük pipeline'dan çıkacağını karar vermedim henüz 00:06 gibi çıkabilir
+        #
+
     def insertBulkPlayers(self, data, table: list):
         date = data[0]["Date"]
         if datetime.strftime(date, '%d-%m-%y') == Dates.today:
